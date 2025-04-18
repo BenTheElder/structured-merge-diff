@@ -6,8 +6,6 @@ import (
 	"reflect"
 	"strings"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 func decoderOfStruct(ctx *ctx, typ reflect.Type) ValDecoder {
@@ -1046,7 +1044,7 @@ func (decoder *tenFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterator
 }
 
 type structFieldDecoder struct {
-	field        reflect2.StructField
+	field        reflect.StructField
 	fieldDecoder ValDecoder
 }
 

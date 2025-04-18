@@ -37,7 +37,7 @@ func (structDescriptor *StructDescriptor) GetField(fieldName string) *Binding {
 // Binding describe how should we encode/decode the struct field
 type Binding struct {
 	levels    []int
-	Field     reflect2.StructField
+	Field     reflect.StructField
 	FromNames []string
 	ToNames   []string
 	Encoder   ValEncoder
