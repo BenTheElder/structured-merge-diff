@@ -2,11 +2,12 @@ package jsoniter
 
 import (
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"io"
 	"reflect"
 	"sort"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
 func decoderOfMap(ctx *ctx, typ reflect2.Type) ValDecoder {
@@ -108,13 +109,13 @@ func encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
 
 	if typ == textMarshalerType {
 		return &directTextMarshalerEncoder{
-			stringEncoder: ctx.EncoderOf(reflect2.TypeOf("")),
+			stringEncoder: ctx.EncoderOf(reflect.TypeOf("")),
 		}
 	}
 	if typ.Implements(textMarshalerType) {
 		return &textMarshalerEncoder{
 			valType:       typ,
-			stringEncoder: ctx.EncoderOf(reflect2.TypeOf("")),
+			stringEncoder: ctx.EncoderOf(reflect.TypeOf("")),
 		}
 	}
 
@@ -234,12 +235,12 @@ type dynamicMapKeyEncoder struct {
 
 func (encoder *dynamicMapKeyEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
 	obj := encoder.valType.UnsafeIndirect(ptr)
-	encoderOfMapKey(encoder.ctx, reflect2.TypeOf(obj)).Encode(reflect2.PtrOf(obj), stream)
+	encoderOfMapKey(encoder.ctx, reflect.TypeOf(obj)).Encode(reflect2.PtrOf(obj), stream)
 }
 
 func (encoder *dynamicMapKeyEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 	obj := encoder.valType.UnsafeIndirect(ptr)
-	return encoderOfMapKey(encoder.ctx, reflect2.TypeOf(obj)).IsEmpty(reflect2.PtrOf(obj))
+	return encoderOfMapKey(encoder.ctx, reflect.TypeOf(obj)).IsEmpty(reflect2.PtrOf(obj))
 }
 
 type mapEncoder struct {

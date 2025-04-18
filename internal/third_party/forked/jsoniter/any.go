@@ -92,7 +92,7 @@ func Wrap(val interface{}) Any {
 	if isAny {
 		return asAny
 	}
-	typ := reflect2.TypeOf(val)
+	typ := reflect.TypeOf(val)
 	switch typ.Kind() {
 	case reflect.Slice:
 		return wrapArray(val)

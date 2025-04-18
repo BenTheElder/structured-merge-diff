@@ -64,7 +64,7 @@ func (iter *Iterator) ReadVal(obj interface{}) {
 	cacheKey := reflect2.RTypeOf(obj)
 	decoder := iter.cfg.getDecoderFromCache(cacheKey)
 	if decoder == nil {
-		typ := reflect2.TypeOf(obj)
+		typ := reflect.TypeOf(obj)
 		if typ == nil || typ.Kind() != reflect.Ptr {
 			iter.ReportError("ReadVal", "can only unmarshal into pointer")
 			return
@@ -92,7 +92,7 @@ func (stream *Stream) WriteVal(val interface{}) {
 	cacheKey := reflect2.RTypeOf(val)
 	encoder := stream.cfg.getEncoderFromCache(cacheKey)
 	if encoder == nil {
-		typ := reflect2.TypeOf(val)
+		typ := reflect.TypeOf(val)
 		encoder = stream.cfg.EncoderOf(typ)
 	}
 	encoder.Encode(reflect2.PtrOf(val), stream)
