@@ -15,7 +15,7 @@ var textMarshalerType = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
 var textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 
 func createDecoderOfMarshaler(ctx *ctx, typ reflect.Type) ValDecoder {
-	ptrType := reflect2.PtrTo(typ)
+	ptrType := reflect.PointerTo(typ)
 	if ptrType.Implements(unmarshalerType) {
 		return &referenceDecoder{
 			&unmarshalerDecoder{ptrType},
@@ -45,7 +45,7 @@ func createEncoderOfMarshaler(ctx *ctx, typ reflect.Type) ValEncoder {
 		}
 		return encoder
 	}
-	ptrType := reflect2.PtrTo(typ)
+	ptrType := reflect.PointerTo(typ)
 	if ctx.prefix != "" && ptrType.Implements(marshalerType) {
 		checkIsEmpty := createCheckIsEmpty(ctx, ptrType)
 		var encoder ValEncoder = &marshalerEncoder{
