@@ -44,7 +44,7 @@ func (decoder *efaceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 			return
 		}
 	}
-	if reflect2.IsNil(obj) {
+	if reflect.ValueOf(obj).IsNil() {
 		obj := ptrElemType.New()
 		iter.ReadVal(obj)
 		*pObj = obj
@@ -63,7 +63,7 @@ func (decoder *ifaceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 		return
 	}
 	obj := decoder.valType.UnsafeIndirect(ptr)
-	if reflect2.IsNil(obj) {
+	if reflect.ValueOf(obj).IsNil() {
 		iter.ReportError("decode non empty interface", "can not unmarshal into nil")
 		return
 	}

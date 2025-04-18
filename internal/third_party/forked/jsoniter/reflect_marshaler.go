@@ -91,7 +91,7 @@ type marshalerEncoder struct {
 
 func (encoder *marshalerEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
 	obj := encoder.valType.UnsafeIndirect(ptr)
-	if encoder.valType.IsNullable() && reflect2.IsNil(obj) {
+	if encoder.valType.IsNullable() && reflect.ValueOf(obj).IsNil() {
 		stream.WriteNil()
 		return
 	}
@@ -144,7 +144,7 @@ type textMarshalerEncoder struct {
 
 func (encoder *textMarshalerEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
 	obj := encoder.valType.UnsafeIndirect(ptr)
-	if encoder.valType.IsNullable() && reflect2.IsNil(obj) {
+	if encoder.valType.IsNullable() && reflect.ValueOf(obj).IsNil() {
 		stream.WriteNil()
 		return
 	}
@@ -210,7 +210,7 @@ type textUnmarshalerDecoder struct {
 func (decoder *textUnmarshalerDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 	valType := decoder.valType
 	obj := valType.UnsafeIndirect(ptr)
-	if reflect2.IsNil(obj) {
+	if reflect.ValueOf(obj).IsNil() {
 		ptrType := valType.(*reflect2.UnsafePtrType)
 		elemType := ptrType.Elem()
 		elem := elemType.UnsafeNew()
