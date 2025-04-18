@@ -11,7 +11,7 @@ import (
 
 const ptrSize = 32 << uintptr(^uintptr(0)>>63)
 
-func createEncoderOfNative(ctx *ctx, typ reflect2.Type) ValEncoder {
+func createEncoderOfNative(ctx *ctx, typ reflect.Type) ValEncoder {
 	if typ.Kind() == reflect.Slice && typ.(reflect2.SliceType).Elem().Kind() == reflect.Uint8 {
 		sliceDecoder := decoderOfSlice(ctx, typ)
 		return &base64Codec{sliceDecoder: sliceDecoder}
@@ -107,7 +107,7 @@ func createEncoderOfNative(ctx *ctx, typ reflect2.Type) ValEncoder {
 	return nil
 }
 
-func createDecoderOfNative(ctx *ctx, typ reflect2.Type) ValDecoder {
+func createDecoderOfNative(ctx *ctx, typ reflect.Type) ValDecoder {
 	if typ.Kind() == reflect.Slice && typ.(reflect2.SliceType).Elem().Kind() == reflect.Uint8 {
 		sliceDecoder := decoderOfSlice(ctx, typ)
 		return &base64Codec{sliceDecoder: sliceDecoder}

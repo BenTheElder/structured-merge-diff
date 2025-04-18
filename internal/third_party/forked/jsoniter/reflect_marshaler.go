@@ -14,7 +14,7 @@ var unmarshalerType = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
 var textMarshalerType = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
 var textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 
-func createDecoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValDecoder {
+func createDecoderOfMarshaler(ctx *ctx, typ reflect.Type) ValDecoder {
 	ptrType := reflect2.PtrTo(typ)
 	if ptrType.Implements(unmarshalerType) {
 		return &referenceDecoder{
@@ -29,7 +29,7 @@ func createDecoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValDecoder {
 	return nil
 }
 
-func createEncoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValEncoder {
+func createEncoderOfMarshaler(ctx *ctx, typ reflect.Type) ValEncoder {
 	if typ == marshalerType {
 		checkIsEmpty := createCheckIsEmpty(ctx, typ)
 		var encoder ValEncoder = &directMarshalerEncoder{
@@ -86,7 +86,7 @@ func createEncoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValEncoder {
 
 type marshalerEncoder struct {
 	checkIsEmpty checkIsEmpty
-	valType      reflect2.Type
+	valType      reflect.Type
 }
 
 func (encoder *marshalerEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
@@ -137,7 +137,7 @@ func (encoder *directMarshalerEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 }
 
 type textMarshalerEncoder struct {
-	valType       reflect2.Type
+	valType       reflect.Type
 	stringEncoder ValEncoder
 	checkIsEmpty  checkIsEmpty
 }
@@ -187,7 +187,7 @@ func (encoder *directTextMarshalerEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 }
 
 type unmarshalerDecoder struct {
-	valType reflect2.Type
+	valType reflect.Type
 }
 
 func (decoder *unmarshalerDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
@@ -204,7 +204,7 @@ func (decoder *unmarshalerDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 }
 
 type textUnmarshalerDecoder struct {
-	valType reflect2.Type
+	valType reflect.Type
 }
 
 func (decoder *textUnmarshalerDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {

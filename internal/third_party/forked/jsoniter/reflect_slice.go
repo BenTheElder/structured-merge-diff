@@ -2,18 +2,20 @@ package jsoniter
 
 import (
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"io"
+	"reflect"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
-func decoderOfSlice(ctx *ctx, typ reflect2.Type) ValDecoder {
+func decoderOfSlice(ctx *ctx, typ reflect.Type) ValDecoder {
 	sliceType := typ.(*reflect2.UnsafeSliceType)
 	decoder := decoderOfType(ctx.append("[sliceElem]"), sliceType.Elem())
 	return &sliceDecoder{sliceType, decoder}
 }
 
-func encoderOfSlice(ctx *ctx, typ reflect2.Type) ValEncoder {
+func encoderOfSlice(ctx *ctx, typ reflect.Type) ValEncoder {
 	sliceType := typ.(*reflect2.UnsafeSliceType)
 	encoder := encoderOfType(ctx.append("[sliceElem]"), sliceType.Elem())
 	return &sliceEncoder{sliceType, encoder}

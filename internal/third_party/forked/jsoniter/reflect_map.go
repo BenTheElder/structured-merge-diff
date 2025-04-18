@@ -10,7 +10,7 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-func decoderOfMap(ctx *ctx, typ reflect2.Type) ValDecoder {
+func decoderOfMap(ctx *ctx, typ reflect.Type) ValDecoder {
 	mapType := typ.(*reflect2.UnsafeMapType)
 	keyDecoder := decoderOfMapKey(ctx.append("[mapKey]"), mapType.Key())
 	elemDecoder := decoderOfType(ctx.append("[mapElem]"), mapType.Elem())
@@ -23,7 +23,7 @@ func decoderOfMap(ctx *ctx, typ reflect2.Type) ValDecoder {
 	}
 }
 
-func encoderOfMap(ctx *ctx, typ reflect2.Type) ValEncoder {
+func encoderOfMap(ctx *ctx, typ reflect.Type) ValEncoder {
 	mapType := typ.(*reflect2.UnsafeMapType)
 	if ctx.sortMapKeys {
 		return &sortKeysMapEncoder{
@@ -39,7 +39,7 @@ func encoderOfMap(ctx *ctx, typ reflect2.Type) ValEncoder {
 	}
 }
 
-func decoderOfMapKey(ctx *ctx, typ reflect2.Type) ValDecoder {
+func decoderOfMapKey(ctx *ctx, typ reflect.Type) ValDecoder {
 	decoder := ctx.decoderExtension.CreateMapKeyDecoder(typ)
 	if decoder != nil {
 		return decoder
@@ -95,7 +95,7 @@ func decoderOfMapKey(ctx *ctx, typ reflect2.Type) ValDecoder {
 	}
 }
 
-func encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
+func encoderOfMapKey(ctx *ctx, typ reflect.Type) ValEncoder {
 	encoder := ctx.encoderExtension.CreateMapKeyEncoder(typ)
 	if encoder != nil {
 		return encoder
@@ -142,8 +142,8 @@ func encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
 
 type mapDecoder struct {
 	mapType     *reflect2.UnsafeMapType
-	keyType     reflect2.Type
-	elemType    reflect2.Type
+	keyType     reflect.Type
+	elemType    reflect.Type
 	keyDecoder  ValDecoder
 	elemDecoder ValDecoder
 }
@@ -230,7 +230,7 @@ func (encoder *numericMapKeyEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 
 type dynamicMapKeyEncoder struct {
 	ctx     *ctx
-	valType reflect2.Type
+	valType reflect.Type
 }
 
 func (encoder *dynamicMapKeyEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {

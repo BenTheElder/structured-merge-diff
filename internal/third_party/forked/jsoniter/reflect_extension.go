@@ -2,12 +2,13 @@ package jsoniter
 
 import (
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"reflect"
 	"sort"
 	"strings"
 	"unicode"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
 var typeDecoders = map[string]ValDecoder{}
@@ -18,7 +19,7 @@ var extensions = []Extension{}
 
 // StructDescriptor describe how should we encode/decode the struct
 type StructDescriptor struct {
-	Type   reflect2.Type
+	Type   reflect.Type
 	Fields []*Binding
 }
 
@@ -47,12 +48,12 @@ type Binding struct {
 // Can also rename fields by UpdateStructDescriptor.
 type Extension interface {
 	UpdateStructDescriptor(structDescriptor *StructDescriptor)
-	CreateMapKeyDecoder(typ reflect2.Type) ValDecoder
-	CreateMapKeyEncoder(typ reflect2.Type) ValEncoder
-	CreateDecoder(typ reflect2.Type) ValDecoder
-	CreateEncoder(typ reflect2.Type) ValEncoder
-	DecorateDecoder(typ reflect2.Type, decoder ValDecoder) ValDecoder
-	DecorateEncoder(typ reflect2.Type, encoder ValEncoder) ValEncoder
+	CreateMapKeyDecoder(typ reflect.Type) ValDecoder
+	CreateMapKeyEncoder(typ reflect.Type) ValEncoder
+	CreateDecoder(typ reflect.Type) ValDecoder
+	CreateEncoder(typ reflect.Type) ValEncoder
+	DecorateDecoder(typ reflect.Type, decoder ValDecoder) ValDecoder
+	DecorateEncoder(typ reflect.Type, encoder ValEncoder) ValEncoder
 }
 
 // DummyExtension embed this type get dummy implementation for all methods of Extension
@@ -64,104 +65,104 @@ func (extension *DummyExtension) UpdateStructDescriptor(structDescriptor *Struct
 }
 
 // CreateMapKeyDecoder No-op
-func (extension *DummyExtension) CreateMapKeyDecoder(typ reflect2.Type) ValDecoder {
+func (extension *DummyExtension) CreateMapKeyDecoder(typ reflect.Type) ValDecoder {
 	return nil
 }
 
 // CreateMapKeyEncoder No-op
-func (extension *DummyExtension) CreateMapKeyEncoder(typ reflect2.Type) ValEncoder {
+func (extension *DummyExtension) CreateMapKeyEncoder(typ reflect.Type) ValEncoder {
 	return nil
 }
 
 // CreateDecoder No-op
-func (extension *DummyExtension) CreateDecoder(typ reflect2.Type) ValDecoder {
+func (extension *DummyExtension) CreateDecoder(typ reflect.Type) ValDecoder {
 	return nil
 }
 
 // CreateEncoder No-op
-func (extension *DummyExtension) CreateEncoder(typ reflect2.Type) ValEncoder {
+func (extension *DummyExtension) CreateEncoder(typ reflect.Type) ValEncoder {
 	return nil
 }
 
 // DecorateDecoder No-op
-func (extension *DummyExtension) DecorateDecoder(typ reflect2.Type, decoder ValDecoder) ValDecoder {
+func (extension *DummyExtension) DecorateDecoder(typ reflect.Type, decoder ValDecoder) ValDecoder {
 	return decoder
 }
 
 // DecorateEncoder No-op
-func (extension *DummyExtension) DecorateEncoder(typ reflect2.Type, encoder ValEncoder) ValEncoder {
+func (extension *DummyExtension) DecorateEncoder(typ reflect.Type, encoder ValEncoder) ValEncoder {
 	return encoder
 }
 
-type EncoderExtension map[reflect2.Type]ValEncoder
+type EncoderExtension map[reflect.Type]ValEncoder
 
 // UpdateStructDescriptor No-op
 func (extension EncoderExtension) UpdateStructDescriptor(structDescriptor *StructDescriptor) {
 }
 
 // CreateDecoder No-op
-func (extension EncoderExtension) CreateDecoder(typ reflect2.Type) ValDecoder {
+func (extension EncoderExtension) CreateDecoder(typ reflect.Type) ValDecoder {
 	return nil
 }
 
 // CreateEncoder get encoder from map
-func (extension EncoderExtension) CreateEncoder(typ reflect2.Type) ValEncoder {
+func (extension EncoderExtension) CreateEncoder(typ reflect.Type) ValEncoder {
 	return extension[typ]
 }
 
 // CreateMapKeyDecoder No-op
-func (extension EncoderExtension) CreateMapKeyDecoder(typ reflect2.Type) ValDecoder {
+func (extension EncoderExtension) CreateMapKeyDecoder(typ reflect.Type) ValDecoder {
 	return nil
 }
 
 // CreateMapKeyEncoder No-op
-func (extension EncoderExtension) CreateMapKeyEncoder(typ reflect2.Type) ValEncoder {
+func (extension EncoderExtension) CreateMapKeyEncoder(typ reflect.Type) ValEncoder {
 	return nil
 }
 
 // DecorateDecoder No-op
-func (extension EncoderExtension) DecorateDecoder(typ reflect2.Type, decoder ValDecoder) ValDecoder {
+func (extension EncoderExtension) DecorateDecoder(typ reflect.Type, decoder ValDecoder) ValDecoder {
 	return decoder
 }
 
 // DecorateEncoder No-op
-func (extension EncoderExtension) DecorateEncoder(typ reflect2.Type, encoder ValEncoder) ValEncoder {
+func (extension EncoderExtension) DecorateEncoder(typ reflect.Type, encoder ValEncoder) ValEncoder {
 	return encoder
 }
 
-type DecoderExtension map[reflect2.Type]ValDecoder
+type DecoderExtension map[reflect.Type]ValDecoder
 
 // UpdateStructDescriptor No-op
 func (extension DecoderExtension) UpdateStructDescriptor(structDescriptor *StructDescriptor) {
 }
 
 // CreateMapKeyDecoder No-op
-func (extension DecoderExtension) CreateMapKeyDecoder(typ reflect2.Type) ValDecoder {
+func (extension DecoderExtension) CreateMapKeyDecoder(typ reflect.Type) ValDecoder {
 	return nil
 }
 
 // CreateMapKeyEncoder No-op
-func (extension DecoderExtension) CreateMapKeyEncoder(typ reflect2.Type) ValEncoder {
+func (extension DecoderExtension) CreateMapKeyEncoder(typ reflect.Type) ValEncoder {
 	return nil
 }
 
 // CreateDecoder get decoder from map
-func (extension DecoderExtension) CreateDecoder(typ reflect2.Type) ValDecoder {
+func (extension DecoderExtension) CreateDecoder(typ reflect.Type) ValDecoder {
 	return extension[typ]
 }
 
 // CreateEncoder No-op
-func (extension DecoderExtension) CreateEncoder(typ reflect2.Type) ValEncoder {
+func (extension DecoderExtension) CreateEncoder(typ reflect.Type) ValEncoder {
 	return nil
 }
 
 // DecorateDecoder No-op
-func (extension DecoderExtension) DecorateDecoder(typ reflect2.Type, decoder ValDecoder) ValDecoder {
+func (extension DecoderExtension) DecorateDecoder(typ reflect.Type, decoder ValDecoder) ValDecoder {
 	return decoder
 }
 
 // DecorateEncoder No-op
-func (extension DecoderExtension) DecorateEncoder(typ reflect2.Type, encoder ValEncoder) ValEncoder {
+func (extension DecoderExtension) DecorateEncoder(typ reflect.Type, encoder ValEncoder) ValEncoder {
 	return encoder
 }
 
@@ -240,7 +241,7 @@ func RegisterExtension(extension Extension) {
 	extensions = append(extensions, extension)
 }
 
-func getTypeDecoderFromExtension(ctx *ctx, typ reflect2.Type) ValDecoder {
+func getTypeDecoderFromExtension(ctx *ctx, typ reflect.Type) ValDecoder {
 	decoder := _getTypeDecoderFromExtension(ctx, typ)
 	if decoder != nil {
 		for _, extension := range extensions {
@@ -253,7 +254,7 @@ func getTypeDecoderFromExtension(ctx *ctx, typ reflect2.Type) ValDecoder {
 	}
 	return decoder
 }
-func _getTypeDecoderFromExtension(ctx *ctx, typ reflect2.Type) ValDecoder {
+func _getTypeDecoderFromExtension(ctx *ctx, typ reflect.Type) ValDecoder {
 	for _, extension := range extensions {
 		decoder := extension.CreateDecoder(typ)
 		if decoder != nil {
@@ -285,7 +286,7 @@ func _getTypeDecoderFromExtension(ctx *ctx, typ reflect2.Type) ValDecoder {
 	return nil
 }
 
-func getTypeEncoderFromExtension(ctx *ctx, typ reflect2.Type) ValEncoder {
+func getTypeEncoderFromExtension(ctx *ctx, typ reflect.Type) ValEncoder {
 	encoder := _getTypeEncoderFromExtension(ctx, typ)
 	if encoder != nil {
 		for _, extension := range extensions {
@@ -299,7 +300,7 @@ func getTypeEncoderFromExtension(ctx *ctx, typ reflect2.Type) ValEncoder {
 	return encoder
 }
 
-func _getTypeEncoderFromExtension(ctx *ctx, typ reflect2.Type) ValEncoder {
+func _getTypeEncoderFromExtension(ctx *ctx, typ reflect.Type) ValEncoder {
 	for _, extension := range extensions {
 		encoder := extension.CreateEncoder(typ)
 		if encoder != nil {
@@ -331,7 +332,7 @@ func _getTypeEncoderFromExtension(ctx *ctx, typ reflect2.Type) ValEncoder {
 	return nil
 }
 
-func describeStruct(ctx *ctx, typ reflect2.Type) *StructDescriptor {
+func describeStruct(ctx *ctx, typ reflect.Type) *StructDescriptor {
 	structType := typ.(*reflect2.UnsafeStructType)
 	embeddedBindings := []*Binding{}
 	bindings := []*Binding{}
@@ -395,7 +396,7 @@ func describeStruct(ctx *ctx, typ reflect2.Type) *StructDescriptor {
 	}
 	return createStructDescriptor(ctx, typ, bindings, embeddedBindings)
 }
-func createStructDescriptor(ctx *ctx, typ reflect2.Type, bindings []*Binding, embeddedBindings []*Binding) *StructDescriptor {
+func createStructDescriptor(ctx *ctx, typ reflect.Type, bindings []*Binding, embeddedBindings []*Binding) *StructDescriptor {
 	structDescriptor := &StructDescriptor{
 		Type:   typ,
 		Fields: bindings,
