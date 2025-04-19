@@ -61,7 +61,7 @@ func (b *ctx) append(prefix string) *ctx {
 // ReadVal copy the underlying JSON into go interface, same as json.Unmarshal
 func (iter *Iterator) ReadVal(obj interface{}) {
 	depth := iter.depth
-	cacheKey := reflect2.RTypeOf(obj)
+	cacheKey := reflect.TypeOf(obj)
 	decoder := iter.cfg.getDecoderFromCache(cacheKey)
 	if decoder == nil {
 		typ := reflect.TypeOf(obj)
@@ -89,7 +89,7 @@ func (stream *Stream) WriteVal(val interface{}) {
 		stream.WriteNil()
 		return
 	}
-	cacheKey := reflect2.RTypeOf(val)
+	cacheKey := reflect.TypeOf(val)
 	encoder := stream.cfg.getEncoderFromCache(cacheKey)
 	if encoder == nil {
 		typ := reflect.TypeOf(val)
@@ -99,8 +99,7 @@ func (stream *Stream) WriteVal(val interface{}) {
 }
 
 func (cfg *frozenConfig) DecoderOf(typ reflect.Type) ValDecoder {
-	cacheKey := typ.RType()
-	decoder := cfg.getDecoderFromCache(cacheKey)
+	decoder := cfg.getDecoderFromCache(typ)
 	if decoder != nil {
 		return decoder
 	}
@@ -112,7 +111,7 @@ func (cfg *frozenConfig) DecoderOf(typ reflect.Type) ValDecoder {
 	}
 	ptrType := typ.(*reflect2.UnsafePtrType)
 	decoder = decoderOfType(ctx, ptrType.Elem())
-	cfg.addDecoderToCache(cacheKey, decoder)
+	cfg.addDecoderToCache(typ, decoder)
 	return decoder
 }
 
