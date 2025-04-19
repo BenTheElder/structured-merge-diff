@@ -5,8 +5,6 @@ import (
 	"io"
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 func encoderOfStruct(ctx *ctx, typ reflect.Type) ValEncoder {
@@ -101,7 +99,7 @@ func resolveConflictBinding(cfg *frozenConfig, old, new *Binding) (ignoreOld, ig
 }
 
 type structFieldEncoder struct {
-	field        reflect2.StructField
+	field        reflect.StructField
 	fieldEncoder ValEncoder
 	omitempty    bool
 }
