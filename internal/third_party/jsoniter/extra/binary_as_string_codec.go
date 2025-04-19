@@ -5,7 +5,6 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
-	"github.com/modern-go/reflect2"
 	"sigs.k8s.io/structured-merge-diff/v6/internal/third_party/jsoniter"
 )
 
@@ -120,14 +119,14 @@ type BinaryAsStringExtension struct {
 	jsoniter.DummyExtension
 }
 
-func (extension *BinaryAsStringExtension) CreateEncoder(typ reflect2.Type) jsoniter.ValEncoder {
+func (extension *BinaryAsStringExtension) CreateEncoder(typ reflect.Type) jsoniter.ValEncoder {
 	if typ == binaryType {
 		return &binaryAsStringCodec{}
 	}
 	return nil
 }
 
-func (extension *BinaryAsStringExtension) CreateDecoder(typ reflect2.Type) jsoniter.ValDecoder {
+func (extension *BinaryAsStringExtension) CreateDecoder(typ reflect.Type) jsoniter.ValDecoder {
 	if typ == binaryType {
 		return &binaryAsStringCodec{}
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 type dynamicEncoder struct {
-	valType reflect2.Type
+	valType reflect.Type
 }
 
 func (encoder *dynamicEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {

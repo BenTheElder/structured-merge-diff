@@ -6,7 +6,6 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/modern-go/reflect2"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/structured-merge-diff/v6/internal/third_party/jsoniter"
 )
@@ -66,7 +65,7 @@ type testMapKeyExtension struct {
 	jsoniter.DummyExtension
 }
 
-func (extension *testMapKeyExtension) CreateMapKeyEncoder(typ reflect2.Type) jsoniter.ValEncoder {
+func (extension *testMapKeyExtension) CreateMapKeyEncoder(typ reflect.Type) jsoniter.ValEncoder {
 	if typ.Kind() == reflect.Int {
 		return &funcEncoder{
 			fun: func(ptr unsafe.Pointer, stream *jsoniter.Stream) {
@@ -79,7 +78,7 @@ func (extension *testMapKeyExtension) CreateMapKeyEncoder(typ reflect2.Type) jso
 	return nil
 }
 
-func (extension *testMapKeyExtension) CreateMapKeyDecoder(typ reflect2.Type) jsoniter.ValDecoder {
+func (extension *testMapKeyExtension) CreateMapKeyDecoder(typ reflect.Type) jsoniter.ValDecoder {
 	if typ.Kind() == reflect.Int {
 		return &funcDecoder{
 			fun: func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {

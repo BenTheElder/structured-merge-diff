@@ -3,13 +3,14 @@ package jsoniter
 import (
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
 )
 
-func decoderOfStruct(ctx *ctx, typ reflect2.Type) ValDecoder {
+func decoderOfStruct(ctx *ctx, typ reflect.Type) ValDecoder {
 	bindings := map[string]*Binding{}
 	structDescriptor := describeStruct(ctx, typ)
 	for _, binding := range structDescriptor.Fields {
@@ -44,7 +45,7 @@ func decoderOfStruct(ctx *ctx, typ reflect2.Type) ValDecoder {
 	return createStructDecoder(ctx, typ, fields)
 }
 
-func createStructDecoder(ctx *ctx, typ reflect2.Type, fields map[string]*structFieldDecoder) ValDecoder {
+func createStructDecoder(ctx *ctx, typ reflect.Type, fields map[string]*structFieldDecoder) ValDecoder {
 	if ctx.disallowUnknownFields {
 		return &generalStructDecoder{typ: typ, fields: fields, disallowUnknownFields: true}
 	}
@@ -491,7 +492,7 @@ func createStructDecoder(ctx *ctx, typ reflect2.Type, fields map[string]*structF
 }
 
 type generalStructDecoder struct {
-	typ                   reflect2.Type
+	typ                   reflect.Type
 	fields                map[string]*structFieldDecoder
 	disallowUnknownFields bool
 }
@@ -553,7 +554,7 @@ func (decoder *generalStructDecoder) decodeOneField(ptr unsafe.Pointer, iter *It
 }
 
 type skipObjectDecoder struct {
-	typ reflect2.Type
+	typ reflect.Type
 }
 
 func (decoder *skipObjectDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
@@ -566,7 +567,7 @@ func (decoder *skipObjectDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 }
 
 type oneFieldStructDecoder struct {
-	typ          reflect2.Type
+	typ          reflect.Type
 	fieldHash    int64
 	fieldDecoder *structFieldDecoder
 }
@@ -595,7 +596,7 @@ func (decoder *oneFieldStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterator)
 }
 
 type twoFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -629,7 +630,7 @@ func (decoder *twoFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterator
 }
 
 type threeFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -667,7 +668,7 @@ func (decoder *threeFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterat
 }
 
 type fourFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -709,7 +710,7 @@ func (decoder *fourFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterato
 }
 
 type fiveFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -755,7 +756,7 @@ func (decoder *fiveFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterato
 }
 
 type sixFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -805,7 +806,7 @@ func (decoder *sixFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterator
 }
 
 type sevenFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -859,7 +860,7 @@ func (decoder *sevenFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterat
 }
 
 type eightFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -917,7 +918,7 @@ func (decoder *eightFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterat
 }
 
 type nineFieldsStructDecoder struct {
-	typ           reflect2.Type
+	typ           reflect.Type
 	fieldHash1    int64
 	fieldDecoder1 *structFieldDecoder
 	fieldHash2    int64
@@ -979,7 +980,7 @@ func (decoder *nineFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterato
 }
 
 type tenFieldsStructDecoder struct {
-	typ            reflect2.Type
+	typ            reflect.Type
 	fieldHash1     int64
 	fieldDecoder1  *structFieldDecoder
 	fieldHash2     int64

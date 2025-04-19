@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strconv"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 type Number string
@@ -37,7 +35,7 @@ func CastJsonNumber(val interface{}) (string, bool) {
 var jsonNumberType = reflect.TypeOf((*json.Number)(nil)).Elem()
 var jsoniterNumberType = reflect.TypeOf((*Number)(nil)).Elem()
 
-func createDecoderOfJsonNumber(ctx *ctx, typ reflect2.Type) ValDecoder {
+func createDecoderOfJsonNumber(ctx *ctx, typ reflect.Type) ValDecoder {
 	if typ.AssignableTo(jsonNumberType) {
 		return &jsonNumberCodec{}
 	}
@@ -47,7 +45,7 @@ func createDecoderOfJsonNumber(ctx *ctx, typ reflect2.Type) ValDecoder {
 	return nil
 }
 
-func createEncoderOfJsonNumber(ctx *ctx, typ reflect2.Type) ValEncoder {
+func createEncoderOfJsonNumber(ctx *ctx, typ reflect.Type) ValEncoder {
 	if typ.AssignableTo(jsonNumberType) {
 		return &jsonNumberCodec{}
 	}

@@ -7,8 +7,6 @@ import (
 	"reflect"
 	"strconv"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 // Any generic object representation.
@@ -260,7 +258,7 @@ func locatePath(iter *Iterator, path []interface{}) Any {
 
 var anyType = reflect.TypeOf((*Any)(nil)).Elem()
 
-func createDecoderOfAny(ctx *ctx, typ reflect2.Type) ValDecoder {
+func createDecoderOfAny(ctx *ctx, typ reflect.Type) ValDecoder {
 	if typ == anyType {
 		return &directAnyCodec{}
 	}
@@ -272,7 +270,7 @@ func createDecoderOfAny(ctx *ctx, typ reflect2.Type) ValDecoder {
 	return nil
 }
 
-func createEncoderOfAny(ctx *ctx, typ reflect2.Type) ValEncoder {
+func createEncoderOfAny(ctx *ctx, typ reflect.Type) ValEncoder {
 	if typ == anyType {
 		return &directAnyCodec{}
 	}
@@ -285,7 +283,7 @@ func createEncoderOfAny(ctx *ctx, typ reflect2.Type) ValEncoder {
 }
 
 type anyCodec struct {
-	valType reflect2.Type
+	valType reflect.Type
 }
 
 func (codec *anyCodec) Decode(ptr unsafe.Pointer, iter *Iterator) {

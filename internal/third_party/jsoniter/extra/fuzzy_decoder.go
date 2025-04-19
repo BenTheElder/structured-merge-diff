@@ -8,7 +8,6 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/modern-go/reflect2"
 	"sigs.k8s.io/structured-merge-diff/v6/internal/third_party/jsoniter"
 )
 
@@ -149,7 +148,7 @@ type tolerateEmptyArrayExtension struct {
 	jsoniter.DummyExtension
 }
 
-func (extension *tolerateEmptyArrayExtension) DecorateDecoder(typ reflect2.Type, decoder jsoniter.ValDecoder) jsoniter.ValDecoder {
+func (extension *tolerateEmptyArrayExtension) DecorateDecoder(typ reflect.Type, decoder jsoniter.ValDecoder) jsoniter.ValDecoder {
 	if typ.Kind() == reflect.Struct || typ.Kind() == reflect.Map {
 		return &tolerateEmptyArrayDecoder{decoder}
 	}

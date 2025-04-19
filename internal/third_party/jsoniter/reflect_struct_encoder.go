@@ -2,13 +2,14 @@ package jsoniter
 
 import (
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"io"
 	"reflect"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
-func encoderOfStruct(ctx *ctx, typ reflect2.Type) ValEncoder {
+func encoderOfStruct(ctx *ctx, typ reflect.Type) ValEncoder {
 	type bindingTo struct {
 		binding *Binding
 		toName  string
@@ -46,7 +47,7 @@ func encoderOfStruct(ctx *ctx, typ reflect2.Type) ValEncoder {
 	return &structEncoder{typ, finalOrderedFields}
 }
 
-func createCheckIsEmpty(ctx *ctx, typ reflect2.Type) checkIsEmpty {
+func createCheckIsEmpty(ctx *ctx, typ reflect.Type) checkIsEmpty {
 	encoder := createEncoderOfNative(ctx, typ)
 	if encoder != nil {
 		return encoder
@@ -132,7 +133,7 @@ type IsEmbeddedPtrNil interface {
 }
 
 type structEncoder struct {
-	typ    reflect2.Type
+	typ    reflect.Type
 	fields []structFieldTo
 }
 

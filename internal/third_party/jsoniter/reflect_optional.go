@@ -1,18 +1,20 @@
 package jsoniter
 
 import (
-	"github.com/modern-go/reflect2"
+	"reflect"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
-func decoderOfOptional(ctx *ctx, typ reflect2.Type) ValDecoder {
+func decoderOfOptional(ctx *ctx, typ reflect.Type) ValDecoder {
 	ptrType := typ.(*reflect2.UnsafePtrType)
 	elemType := ptrType.Elem()
 	decoder := decoderOfType(ctx, elemType)
 	return &OptionalDecoder{elemType, decoder}
 }
 
-func encoderOfOptional(ctx *ctx, typ reflect2.Type) ValEncoder {
+func encoderOfOptional(ctx *ctx, typ reflect.Type) ValEncoder {
 	ptrType := typ.(*reflect2.UnsafePtrType)
 	elemType := ptrType.Elem()
 	elemEncoder := encoderOfType(ctx, elemType)
@@ -21,7 +23,7 @@ func encoderOfOptional(ctx *ctx, typ reflect2.Type) ValEncoder {
 }
 
 type OptionalDecoder struct {
-	ValueType    reflect2.Type
+	ValueType    reflect.Type
 	ValueDecoder ValDecoder
 }
 
@@ -43,7 +45,7 @@ func (decoder *OptionalDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 
 type dereferenceDecoder struct {
 	// only to deference a pointer
-	valueType    reflect2.Type
+	valueType    reflect.Type
 	valueDecoder ValDecoder
 }
 

@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 var jsonRawMessageType = reflect.TypeOf((*json.RawMessage)(nil)).Elem()
 var jsoniterRawMessageType = reflect.TypeOf((*RawMessage)(nil)).Elem()
 
-func createEncoderOfJsonRawMessage(ctx *ctx, typ reflect2.Type) ValEncoder {
+func createEncoderOfJsonRawMessage(ctx *ctx, typ reflect.Type) ValEncoder {
 	if typ == jsonRawMessageType {
 		return &jsonRawMessageCodec{}
 	}
@@ -21,7 +19,7 @@ func createEncoderOfJsonRawMessage(ctx *ctx, typ reflect2.Type) ValEncoder {
 	return nil
 }
 
-func createDecoderOfJsonRawMessage(ctx *ctx, typ reflect2.Type) ValDecoder {
+func createDecoderOfJsonRawMessage(ctx *ctx, typ reflect.Type) ValDecoder {
 	if typ == jsonRawMessageType {
 		return &jsonRawMessageCodec{}
 	}
