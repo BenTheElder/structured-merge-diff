@@ -51,7 +51,7 @@ func decoderOfMapKey(ctx *ctx, typ reflect.Type) ValDecoder {
 		}
 	}
 
-	ptrType := reflect2.PtrTo(typ)
+	ptrType := reflect.PointerTo(typ)
 	if ptrType.Implements(unmarshalerType) {
 		return &referenceDecoder{
 			&unmarshalerDecoder{
