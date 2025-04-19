@@ -2,12 +2,14 @@ package jsoniter
 
 import (
 	"encoding/json"
-	"github.com/modern-go/reflect2"
+	"reflect"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
-var jsonRawMessageType = reflect2.TypeOfPtr((*json.RawMessage)(nil)).Elem()
-var jsoniterRawMessageType = reflect2.TypeOfPtr((*RawMessage)(nil)).Elem()
+var jsonRawMessageType = reflect.TypeOf((*json.RawMessage)(nil)).Elem()
+var jsoniterRawMessageType = reflect.TypeOf((*RawMessage)(nil)).Elem()
 
 func createEncoderOfJsonRawMessage(ctx *ctx, typ reflect2.Type) ValEncoder {
 	if typ == jsonRawMessageType {

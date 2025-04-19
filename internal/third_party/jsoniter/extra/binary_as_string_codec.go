@@ -1,6 +1,7 @@
 package extra
 
 import (
+	"reflect"
 	"unicode/utf8"
 	"unsafe"
 
@@ -113,7 +114,7 @@ var safeSet = [utf8.RuneSelf]bool{
 	'\u007f': true,
 }
 
-var binaryType = reflect2.TypeOfPtr((*[]byte)(nil)).Elem()
+var binaryType = reflect.TypeOf((*[]byte)(nil)).Elem()
 
 type BinaryAsStringExtension struct {
 	jsoniter.DummyExtension

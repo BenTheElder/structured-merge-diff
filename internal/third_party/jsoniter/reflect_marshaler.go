@@ -3,15 +3,16 @@ package jsoniter
 import (
 	"encoding"
 	"encoding/json"
+	"reflect"
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
 )
 
-var marshalerType = reflect2.TypeOfPtr((*json.Marshaler)(nil)).Elem()
-var unmarshalerType = reflect2.TypeOfPtr((*json.Unmarshaler)(nil)).Elem()
-var textMarshalerType = reflect2.TypeOfPtr((*encoding.TextMarshaler)(nil)).Elem()
-var textUnmarshalerType = reflect2.TypeOfPtr((*encoding.TextUnmarshaler)(nil)).Elem()
+var marshalerType = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
+var unmarshalerType = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+var textMarshalerType = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+var textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 
 func createDecoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValDecoder {
 	ptrType := reflect2.PtrTo(typ)

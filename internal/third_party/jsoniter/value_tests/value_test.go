@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/modern-go/reflect2"
@@ -43,7 +44,7 @@ func Test_unmarshal(t *testing.T) {
 				obj1 = testCase.obj()
 				obj2 = testCase.obj()
 			} else {
-				valType := reflect2.TypeOfPtr(testCase.ptr).Elem()
+				valType := reflect.TypeOf(testCase.ptr).Elem()
 				obj1 = valType.New()
 				obj2 = valType.New()
 			}

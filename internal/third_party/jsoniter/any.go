@@ -3,11 +3,12 @@ package jsoniter
 import (
 	"errors"
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"io"
 	"reflect"
 	"strconv"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
 // Any generic object representation.
@@ -257,7 +258,7 @@ func locatePath(iter *Iterator, path []interface{}) Any {
 	return iter.readAny()
 }
 
-var anyType = reflect2.TypeOfPtr((*Any)(nil)).Elem()
+var anyType = reflect.TypeOf((*Any)(nil)).Elem()
 
 func createDecoderOfAny(ctx *ctx, typ reflect2.Type) ValDecoder {
 	if typ == anyType {
