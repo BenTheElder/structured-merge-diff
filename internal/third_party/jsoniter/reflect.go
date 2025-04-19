@@ -187,8 +187,7 @@ func _createDecoderOfType(ctx *ctx, typ reflect.Type) ValDecoder {
 }
 
 func (cfg *frozenConfig) EncoderOf(typ reflect.Type) ValEncoder {
-	cacheKey := typ.RType()
-	encoder := cfg.getEncoderFromCache(cacheKey)
+	encoder := cfg.getEncoderFromCache(typ)
 	if encoder != nil {
 		return encoder
 	}
@@ -202,7 +201,7 @@ func (cfg *frozenConfig) EncoderOf(typ reflect.Type) ValEncoder {
 	if typ.LikePtr() {
 		encoder = &onePtrEncoder{encoder}
 	}
-	cfg.addEncoderToCache(cacheKey, encoder)
+	cfg.addEncoderToCache(typ, encoder)
 	return encoder
 }
 
