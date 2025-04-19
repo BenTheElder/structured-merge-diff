@@ -277,10 +277,9 @@ func _getTypeDecoderFromExtension(ctx *ctx, typ reflect.Type) ValDecoder {
 		return decoder
 	}
 	if typ.Kind() == reflect.Ptr {
-		ptrType := typ.(*reflect2.UnsafePtrType)
-		decoder := typeDecoders[ptrType.Elem().String()]
+		decoder := typeDecoders[typ.Elem().String()]
 		if decoder != nil {
-			return &OptionalDecoder{ptrType.Elem(), decoder}
+			return &OptionalDecoder{typ.Elem(), decoder}
 		}
 	}
 	return nil
@@ -323,8 +322,7 @@ func _getTypeEncoderFromExtension(ctx *ctx, typ reflect.Type) ValEncoder {
 		return encoder
 	}
 	if typ.Kind() == reflect.Ptr {
-		typePtr := typ.(*reflect2.UnsafePtrType)
-		encoder := typeEncoders[typePtr.Elem().String()]
+		encoder := typeEncoders[typ.Elem().String()]
 		if encoder != nil {
 			return &OptionalEncoder{encoder}
 		}
@@ -333,11 +331,10 @@ func _getTypeEncoderFromExtension(ctx *ctx, typ reflect.Type) ValEncoder {
 }
 
 func describeStruct(ctx *ctx, typ reflect.Type) *StructDescriptor {
-	structType := typ.(*reflect2.UnsafeStructType)
 	embeddedBindings := []*Binding{}
 	bindings := []*Binding{}
-	for i := 0; i < structType.NumField(); i++ {
-		field := structType.Field(i)
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
 		tag, hastag := field.Tag().Lookup(ctx.getTagKey())
 		if ctx.onlyTaggedField && !hastag && !field.Anonymous() {
 			continue

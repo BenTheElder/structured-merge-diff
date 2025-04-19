@@ -5,23 +5,19 @@ import (
 	"io"
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 func decoderOfArray(ctx *ctx, typ reflect.Type) ValDecoder {
-	arrayType := typ.(*reflect2.UnsafeArrayType)
-	decoder := decoderOfType(ctx.append("[arrayElem]"), arrayType.Elem())
-	return &arrayDecoder{arrayType, decoder}
+	decoder := decoderOfType(ctx.append("[arrayElem]"), typ.Elem())
+	return &arrayDecoder{typ, decoder}
 }
 
 func encoderOfArray(ctx *ctx, typ reflect.Type) ValEncoder {
-	arrayType := typ.(*reflect2.UnsafeArrayType)
-	if arrayType.Len() == 0 {
+	if typ.Len() == 0 {
 		return emptyArrayEncoder{}
 	}
-	encoder := encoderOfType(ctx.append("[arrayElem]"), arrayType.Elem())
-	return &arrayEncoder{arrayType, encoder}
+	encoder := encoderOfType(ctx.append("[arrayElem]"), typ.Elem())
+	return &arrayEncoder{typ, encoder}
 }
 
 type emptyArrayEncoder struct{}
@@ -35,7 +31,7 @@ func (encoder emptyArrayEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 }
 
 type arrayEncoder struct {
-	arrayType   *reflect2.UnsafeArrayType
+	arrayType   reflect.Type
 	elemEncoder ValEncoder
 }
 
@@ -59,7 +55,7 @@ func (encoder *arrayEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 }
 
 type arrayDecoder struct {
-	arrayType   *reflect2.UnsafeArrayType
+	arrayType   reflect.Type
 	elemDecoder ValDecoder
 }
 

@@ -61,7 +61,7 @@ func (b *ctx) append(prefix string) *ctx {
 // ReadVal copy the underlying JSON into go interface, same as json.Unmarshal
 func (iter *Iterator) ReadVal(obj interface{}) {
 	depth := iter.depth
-	cacheKey := reflect2.RTypeOf(obj)
+	cacheKey := reflect.TypeOf(obj)
 	decoder := iter.cfg.getDecoderFromCache(cacheKey)
 	if decoder == nil {
 		typ := reflect.TypeOf(obj)
@@ -89,7 +89,7 @@ func (stream *Stream) WriteVal(val interface{}) {
 		stream.WriteNil()
 		return
 	}
-	cacheKey := reflect2.RTypeOf(val)
+	cacheKey := reflect.TypeOf(val)
 	encoder := stream.cfg.getEncoderFromCache(cacheKey)
 	if encoder == nil {
 		typ := reflect.TypeOf(val)
@@ -99,8 +99,7 @@ func (stream *Stream) WriteVal(val interface{}) {
 }
 
 func (cfg *frozenConfig) DecoderOf(typ reflect.Type) ValDecoder {
-	cacheKey := typ.RType()
-	decoder := cfg.getDecoderFromCache(cacheKey)
+	decoder := cfg.getDecoderFromCache(typ)
 	if decoder != nil {
 		return decoder
 	}
@@ -110,9 +109,9 @@ func (cfg *frozenConfig) DecoderOf(typ reflect.Type) ValDecoder {
 		decoders:     map[reflect.Type]ValDecoder{},
 		encoders:     map[reflect.Type]ValEncoder{},
 	}
-	ptrType := typ.(*reflect2.UnsafePtrType)
-	decoder = decoderOfType(ctx, ptrType.Elem())
-	cfg.addDecoderToCache(cacheKey, decoder)
+	// assume pointer type
+	decoder = decoderOfType(ctx, typ.Elem())
+	cfg.addDecoderToCache(typ, decoder)
 	return decoder
 }
 
@@ -188,8 +187,7 @@ func _createDecoderOfType(ctx *ctx, typ reflect.Type) ValDecoder {
 }
 
 func (cfg *frozenConfig) EncoderOf(typ reflect.Type) ValEncoder {
-	cacheKey := typ.RType()
-	encoder := cfg.getEncoderFromCache(cacheKey)
+	encoder := cfg.getEncoderFromCache(typ)
 	if encoder != nil {
 		return encoder
 	}
@@ -200,12 +198,42 @@ func (cfg *frozenConfig) EncoderOf(typ reflect.Type) ValEncoder {
 		encoders:     map[reflect.Type]ValEncoder{},
 	}
 	encoder = encoderOfType(ctx, typ)
-	if typ.LikePtr() {
+	if likePtrType(typ) {
 		encoder = &onePtrEncoder{encoder}
 	}
-	cfg.addEncoderToCache(cacheKey, encoder)
+	cfg.addEncoderToCache(typ, encoder)
 	return encoder
 }
+
+// TODO
+func likePtrKind(kind reflect.Kind) bool {
+	switch kind {
+	case reflect.Ptr, reflect.Map, reflect.Chan, reflect.Func:
+		return true
+	}
+	return false
+}
+
+func likePtrType(typ reflect.Type) bool {
+	if likePtrKind(typ.Kind()) {
+		return true
+	}
+	if typ.Kind() == reflect.Struct {
+		if typ.NumField() != 1 {
+			return false
+		}
+		return likePtrType(typ.Field(0).Type)
+	}
+	if typ.Kind() == reflect.Array {
+		if typ.Len() != 1 {
+			return false
+		}
+		return likePtrType(typ.Elem())
+	}
+	return false
+}
+
+// end TODO
 
 type onePtrEncoder struct {
 	encoder ValEncoder
