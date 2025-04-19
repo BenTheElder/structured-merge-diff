@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/modern-go/reflect2"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/structured-merge-diff/v6/internal/third_party/jsoniter"
 )
@@ -68,7 +67,7 @@ func Test_marshal(t *testing.T) {
 	for i, testCase := range marshalCases {
 		var name string
 		if testCase != nil {
-			name = fmt.Sprintf("[%v]%v/%s", i, testCase, reflect2.TypeOf(testCase).String())
+			name = fmt.Sprintf("[%v]%v/%s", i, testCase, reflect.TypeOf(testCase).String())
 		}
 		t.Run(name, func(t *testing.T) {
 			should := require.New(t)

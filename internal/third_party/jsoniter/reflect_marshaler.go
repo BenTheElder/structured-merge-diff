@@ -58,7 +58,7 @@ func createEncoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValEncoder {
 		checkIsEmpty := createCheckIsEmpty(ctx, typ)
 		var encoder ValEncoder = &directTextMarshalerEncoder{
 			checkIsEmpty:  checkIsEmpty,
-			stringEncoder: ctx.EncoderOf(reflect2.TypeOf("")),
+			stringEncoder: ctx.EncoderOf(reflect.TypeOf("")),
 		}
 		return encoder
 	}
@@ -66,7 +66,7 @@ func createEncoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValEncoder {
 		checkIsEmpty := createCheckIsEmpty(ctx, typ)
 		var encoder ValEncoder = &textMarshalerEncoder{
 			valType:       typ,
-			stringEncoder: ctx.EncoderOf(reflect2.TypeOf("")),
+			stringEncoder: ctx.EncoderOf(reflect.TypeOf("")),
 			checkIsEmpty:  checkIsEmpty,
 		}
 		return encoder
@@ -76,7 +76,7 @@ func createEncoderOfMarshaler(ctx *ctx, typ reflect2.Type) ValEncoder {
 		checkIsEmpty := createCheckIsEmpty(ctx, ptrType)
 		var encoder ValEncoder = &textMarshalerEncoder{
 			valType:       ptrType,
-			stringEncoder: ctx.EncoderOf(reflect2.TypeOf("")),
+			stringEncoder: ctx.EncoderOf(reflect.TypeOf("")),
 			checkIsEmpty:  checkIsEmpty,
 		}
 		return &referenceEncoder{encoder}
