@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 var marshalerType = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
@@ -90,8 +88,9 @@ type marshalerEncoder struct {
 }
 
 func (encoder *marshalerEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
-	obj := encoder.valType.UnsafeIndirect(ptr)
-	if encoder.valType.IsNullable() && reflect.ValueOf(obj).IsNil() {
+	value := reflect.NewAt(encoder.valType, ptr)
+	obj := reflect.Indirect(value).Interface()
+	if value.IsNil() {
 		stream.WriteNil()
 		return
 	}
@@ -143,8 +142,9 @@ type textMarshalerEncoder struct {
 }
 
 func (encoder *textMarshalerEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
-	obj := encoder.valType.UnsafeIndirect(ptr)
-	if encoder.valType.IsNullable() && reflect.ValueOf(obj).IsNil() {
+	value := reflect.NewAt(encoder.valType, ptr)
+	obj := reflect.Indirect(value).Interface()
+	if value.IsNil() {
 		stream.WriteNil()
 		return
 	}
@@ -191,8 +191,8 @@ type unmarshalerDecoder struct {
 }
 
 func (decoder *unmarshalerDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
-	valType := decoder.valType
-	obj := valType.UnsafeIndirect(ptr)
+	value := reflect.NewAt(decoder.valType, ptr)
+	obj := reflect.Indirect(value).Interface()
 	unmarshaler := obj.(json.Unmarshaler)
 	iter.nextToken()
 	iter.unreadByte() // skip spaces
@@ -209,13 +209,13 @@ type textUnmarshalerDecoder struct {
 
 func (decoder *textUnmarshalerDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 	valType := decoder.valType
-	obj := valType.UnsafeIndirect(ptr)
+	value := reflect.NewAt(valType, ptr)
+	obj := reflect.Indirect(value).Interface()
 	if reflect.ValueOf(obj).IsNil() {
-		ptrType := valType.(*reflect2.UnsafePtrType)
-		elemType := ptrType.Elem()
-		elem := elemType.UnsafeNew()
-		ptrType.UnsafeSet(ptr, unsafe.Pointer(&elem))
-		obj = valType.UnsafeIndirect(ptr)
+		elemType := valType.Elem()
+		elem := reflect.New(elemType)
+		value.Set(elem)
+		obj = reflect.Indirect(value).Interface()
 	}
 	unmarshaler := (obj).(encoding.TextUnmarshaler)
 	str := iter.ReadString()
