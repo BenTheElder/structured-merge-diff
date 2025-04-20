@@ -7,8 +7,6 @@ import (
 	"strings"
 	"unicode"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 var typeDecoders = map[string]ValDecoder{}
@@ -27,7 +25,7 @@ type StructDescriptor struct {
 // Can not use map here to keep field orders.
 func (structDescriptor *StructDescriptor) GetField(fieldName string) *Binding {
 	for _, binding := range structDescriptor.Fields {
-		if binding.Field.Name() == fieldName {
+		if binding.Field.Name == fieldName {
 			return binding
 		}
 	}
@@ -277,10 +275,9 @@ func _getTypeDecoderFromExtension(ctx *ctx, typ reflect.Type) ValDecoder {
 		return decoder
 	}
 	if typ.Kind() == reflect.Ptr {
-		ptrType := typ.(*reflect2.UnsafePtrType)
-		decoder := typeDecoders[ptrType.Elem().String()]
+		decoder := typeDecoders[typ.Elem().String()]
 		if decoder != nil {
-			return &OptionalDecoder{ptrType.Elem(), decoder}
+			return &OptionalDecoder{typ.Elem(), decoder}
 		}
 	}
 	return nil
@@ -323,8 +320,7 @@ func _getTypeEncoderFromExtension(ctx *ctx, typ reflect.Type) ValEncoder {
 		return encoder
 	}
 	if typ.Kind() == reflect.Ptr {
-		typePtr := typ.(*reflect2.UnsafePtrType)
-		encoder := typeEncoders[typePtr.Elem().String()]
+		encoder := typeEncoders[typ.Elem().String()]
 		if encoder != nil {
 			return &OptionalEncoder{encoder}
 		}
@@ -333,22 +329,21 @@ func _getTypeEncoderFromExtension(ctx *ctx, typ reflect.Type) ValEncoder {
 }
 
 func describeStruct(ctx *ctx, typ reflect.Type) *StructDescriptor {
-	structType := typ.(*reflect2.UnsafeStructType)
 	embeddedBindings := []*Binding{}
 	bindings := []*Binding{}
-	for i := 0; i < structType.NumField(); i++ {
-		field := structType.Field(i)
-		tag, hastag := field.Tag().Lookup(ctx.getTagKey())
-		if ctx.onlyTaggedField && !hastag && !field.Anonymous() {
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
+		tag, hastag := field.Tag.Lookup(ctx.getTagKey())
+		if ctx.onlyTaggedField && !hastag && !field.Anonymous {
 			continue
 		}
-		if tag == "-" || field.Name() == "_" {
+		if tag == "-" || field.Name == "_" {
 			continue
 		}
 		tagParts := strings.Split(tag, ",")
-		if field.Anonymous() && (tag == "" || tagParts[0] == "") {
-			if field.Type().Kind() == reflect.Struct {
-				structDescriptor := describeStruct(ctx, field.Type())
+		if field.Anonymous && (tag == "" || tagParts[0] == "") {
+			if field.Type.Kind() == reflect.Struct {
+				structDescriptor := describeStruct(ctx, field.Type)
 				for _, binding := range structDescriptor.Fields {
 					binding.levels = append([]int{i}, binding.levels...)
 					omitempty := binding.Encoder.(*structFieldEncoder).omitempty
@@ -357,8 +352,8 @@ func describeStruct(ctx *ctx, typ reflect.Type) *StructDescriptor {
 					embeddedBindings = append(embeddedBindings, binding)
 				}
 				continue
-			} else if field.Type().Kind() == reflect.Ptr {
-				ptrType := field.Type().(*reflect2.UnsafePtrType)
+			} else if field.Type.Kind() == reflect.Ptr {
+				ptrType := field.Type
 				if ptrType.Elem().Kind() == reflect.Struct {
 					structDescriptor := describeStruct(ctx, ptrType.Elem())
 					for _, binding := range structDescriptor.Fields {
@@ -374,15 +369,15 @@ func describeStruct(ctx *ctx, typ reflect.Type) *StructDescriptor {
 				}
 			}
 		}
-		fieldNames := calcFieldNames(field.Name(), tagParts[0], tag)
-		fieldCacheKey := fmt.Sprintf("%s/%s", typ.String(), field.Name())
+		fieldNames := calcFieldNames(field.Name, tagParts[0], tag)
+		fieldCacheKey := fmt.Sprintf("%s/%s", typ.String(), field.Name)
 		decoder := fieldDecoders[fieldCacheKey]
 		if decoder == nil {
-			decoder = decoderOfType(ctx.append(field.Name()), field.Type())
+			decoder = decoderOfType(ctx.append(field.Name), field.Type)
 		}
 		encoder := fieldEncoders[fieldCacheKey]
 		if encoder == nil {
-			encoder = encoderOfType(ctx.append(field.Name()), field.Type())
+			encoder = encoderOfType(ctx.append(field.Name), field.Type)
 		}
 		binding := &Binding{
 			Field:     field,
@@ -444,12 +439,12 @@ func (bindings sortableBindings) Swap(i, j int) {
 func processTags(structDescriptor *StructDescriptor, cfg *frozenConfig) {
 	for _, binding := range structDescriptor.Fields {
 		shouldOmitEmpty := false
-		tagParts := strings.Split(binding.Field.Tag().Get(cfg.getTagKey()), ",")
+		tagParts := strings.Split(binding.Field.Tag.Get(cfg.getTagKey()), ",")
 		for _, tagPart := range tagParts[1:] {
 			if tagPart == "omitempty" {
 				shouldOmitEmpty = true
 			} else if tagPart == "string" {
-				if binding.Field.Type().Kind() == reflect.String {
+				if binding.Field.Type.Kind() == reflect.String {
 					binding.Decoder = &stringModeStringDecoder{binding.Decoder, cfg}
 					binding.Encoder = &stringModeStringEncoder{binding.Encoder, cfg}
 				} else {
