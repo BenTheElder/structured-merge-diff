@@ -5,42 +5,39 @@ import (
 	"io"
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 func decoderOfSlice(ctx *ctx, typ reflect.Type) ValDecoder {
-	sliceType := typ.(*reflect2.UnsafeSliceType)
-	decoder := decoderOfType(ctx.append("[sliceElem]"), sliceType.Elem())
-	return &sliceDecoder{sliceType, decoder}
+	decoder := decoderOfType(ctx.append("[sliceElem]"), typ.Elem())
+	return &sliceDecoder{typ, decoder}
 }
 
 func encoderOfSlice(ctx *ctx, typ reflect.Type) ValEncoder {
-	sliceType := typ.(*reflect2.UnsafeSliceType)
-	encoder := encoderOfType(ctx.append("[sliceElem]"), sliceType.Elem())
-	return &sliceEncoder{sliceType, encoder}
+	encoder := encoderOfType(ctx.append("[sliceElem]"), typ.Elem())
+	return &sliceEncoder{typ, encoder}
 }
 
 type sliceEncoder struct {
-	sliceType   *reflect2.UnsafeSliceType
+	sliceType   reflect.Type
 	elemEncoder ValEncoder
 }
 
 func (encoder *sliceEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
-	if encoder.sliceType.UnsafeIsNil(ptr) {
+	value := reflect.NewAt(encoder.sliceType, ptr)
+	if value.IsNil() {
 		stream.WriteNil()
 		return
 	}
-	length := encoder.sliceType.UnsafeLengthOf(ptr)
+	length := value.Len()
 	if length == 0 {
 		stream.WriteEmptyArray()
 		return
 	}
 	stream.WriteArrayStart()
-	encoder.elemEncoder.Encode(encoder.sliceType.UnsafeGetIndex(ptr, 0), stream)
+	encoder.elemEncoder.Encode(value.Index(0).UnsafePointer(), stream)
 	for i := 1; i < length; i++ {
 		stream.WriteMore()
-		elemPtr := encoder.sliceType.UnsafeGetIndex(ptr, i)
+		elemPtr := value.Index(i).UnsafePointer()
 		encoder.elemEncoder.Encode(elemPtr, stream)
 	}
 	stream.WriteArrayEnd()
@@ -50,11 +47,12 @@ func (encoder *sliceEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
 }
 
 func (encoder *sliceEncoder) IsEmpty(ptr unsafe.Pointer) bool {
-	return encoder.sliceType.UnsafeLengthOf(ptr) == 0
+	value := reflect.NewAt(encoder.sliceType, ptr)
+	return value.Len() == 0
 }
 
 type sliceDecoder struct {
-	sliceType   *reflect2.UnsafeSliceType
+	sliceType   reflect.Type
 	elemDecoder ValDecoder
 }
 
@@ -68,9 +66,10 @@ func (decoder *sliceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 func (decoder *sliceDecoder) doDecode(ptr unsafe.Pointer, iter *Iterator) {
 	c := iter.nextToken()
 	sliceType := decoder.sliceType
+	value := reflect.NewAt(sliceType, ptr)
 	if c == 'n' {
 		iter.skipThreeBytes('u', 'l', 'l')
-		sliceType.UnsafeSetNil(ptr)
+		value.SetZero()
 		return
 	}
 	if c != '[' {
@@ -79,19 +78,19 @@ func (decoder *sliceDecoder) doDecode(ptr unsafe.Pointer, iter *Iterator) {
 	}
 	c = iter.nextToken()
 	if c == ']' {
-		sliceType.UnsafeSet(ptr, sliceType.UnsafeMakeSlice(0, 0))
+		value.Set(reflect.MakeSlice(sliceType, 0, 0))
 		return
 	}
 	iter.unreadByte()
-	sliceType.UnsafeGrow(ptr, 1)
-	elemPtr := sliceType.UnsafeGetIndex(ptr, 0)
+	value.Grow(1)
+	elemPtr := value.UnsafePointer()
 	decoder.elemDecoder.Decode(elemPtr, iter)
 	length := 1
 	for c = iter.nextToken(); c == ','; c = iter.nextToken() {
 		idx := length
 		length += 1
-		sliceType.UnsafeGrow(ptr, length)
-		elemPtr = sliceType.UnsafeGetIndex(ptr, idx)
+		value.Grow(length)
+		elemPtr = value.Index(idx).UnsafePointer()
 		decoder.elemDecoder.Decode(elemPtr, iter)
 	}
 	if c != ']' {
