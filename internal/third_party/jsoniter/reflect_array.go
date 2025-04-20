@@ -5,23 +5,19 @@ import (
 	"io"
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 func decoderOfArray(ctx *ctx, typ reflect.Type) ValDecoder {
-	arrayType := typ.(*reflect2.UnsafeArrayType)
-	decoder := decoderOfType(ctx.append("[arrayElem]"), arrayType.Elem())
-	return &arrayDecoder{arrayType, decoder}
+	decoder := decoderOfType(ctx.append("[arrayElem]"), typ.Elem())
+	return &arrayDecoder{typ, decoder}
 }
 
 func encoderOfArray(ctx *ctx, typ reflect.Type) ValEncoder {
-	arrayType := typ.(*reflect2.UnsafeArrayType)
-	if arrayType.Len() == 0 {
+	if typ.Len() == 0 {
 		return emptyArrayEncoder{}
 	}
-	encoder := encoderOfType(ctx.append("[arrayElem]"), arrayType.Elem())
-	return &arrayEncoder{arrayType, encoder}
+	encoder := encoderOfType(ctx.append("[arrayElem]"), typ.Elem())
+	return &arrayEncoder{typ, encoder}
 }
 
 type emptyArrayEncoder struct{}
@@ -35,7 +31,7 @@ func (encoder emptyArrayEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 }
 
 type arrayEncoder struct {
-	arrayType   *reflect2.UnsafeArrayType
+	arrayType   reflect.Type
 	elemEncoder ValEncoder
 }
 
@@ -45,7 +41,7 @@ func (encoder *arrayEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
 	encoder.elemEncoder.Encode(elemPtr, stream)
 	for i := 1; i < encoder.arrayType.Len(); i++ {
 		stream.WriteMore()
-		elemPtr = encoder.arrayType.UnsafeGetIndex(ptr, i)
+		elemPtr = unsafeGetArrayIndex(encoder.arrayType, ptr, i)
 		encoder.elemEncoder.Encode(elemPtr, stream)
 	}
 	stream.WriteArrayEnd()
@@ -54,12 +50,16 @@ func (encoder *arrayEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
 	}
 }
 
+func unsafeGetArrayIndex(typ reflect.Type, ptr unsafe.Pointer, i int) unsafe.Pointer {
+	return unsafe.Add(ptr, typ.Elem().Size()*uintptr(i))
+}
+
 func (encoder *arrayEncoder) IsEmpty(ptr unsafe.Pointer) bool {
 	return false
 }
 
 type arrayDecoder struct {
-	arrayType   *reflect2.UnsafeArrayType
+	arrayType   reflect.Type
 	elemDecoder ValDecoder
 }
 
@@ -86,7 +86,7 @@ func (decoder *arrayDecoder) doDecode(ptr unsafe.Pointer, iter *Iterator) {
 		return
 	}
 	iter.unreadByte()
-	elemPtr := arrayType.UnsafeGetIndex(ptr, 0)
+	elemPtr := unsafeGetArrayIndex(arrayType, ptr, 0)
 	decoder.elemDecoder.Decode(elemPtr, iter)
 	length := 1
 	for c = iter.nextToken(); c == ','; c = iter.nextToken() {
@@ -96,7 +96,7 @@ func (decoder *arrayDecoder) doDecode(ptr unsafe.Pointer, iter *Iterator) {
 		}
 		idx := length
 		length += 1
-		elemPtr = arrayType.UnsafeGetIndex(ptr, idx)
+		elemPtr = unsafeGetArrayIndex(arrayType, ptr, idx)
 		decoder.elemDecoder.Decode(elemPtr, iter)
 	}
 	if c != ']' {
