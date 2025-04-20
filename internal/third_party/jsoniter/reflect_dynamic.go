@@ -3,8 +3,6 @@ package jsoniter
 import (
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 type dynamicEncoder struct {
@@ -12,12 +10,12 @@ type dynamicEncoder struct {
 }
 
 func (encoder *dynamicEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
-	obj := encoder.valType.UnsafeIndirect(ptr)
+	obj := reflect.Indirect(reflect.NewAt(encoder.valType, ptr)).Interface()
 	stream.WriteVal(obj)
 }
 
 func (encoder *dynamicEncoder) IsEmpty(ptr unsafe.Pointer) bool {
-	return encoder.valType.UnsafeIndirect(ptr) == nil
+	return reflect.NewAt(encoder.valType, ptr).IsNil()
 }
 
 type efaceDecoder struct {
@@ -35,8 +33,7 @@ func (decoder *efaceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 		*pObj = iter.Read()
 		return
 	}
-	ptrType := typ.(*reflect2.UnsafePtrType)
-	ptrElemType := ptrType.Elem()
+	ptrElemType := typ.Elem()
 	if iter.WhatIsNext() == NilValue {
 		if ptrElemType.Kind() != reflect.Ptr {
 			iter.skipFourBytes('n', 'u', 'l', 'l')
@@ -45,7 +42,7 @@ func (decoder *efaceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 		}
 	}
 	if reflect.ValueOf(obj).IsNil() {
-		obj := ptrElemType.New()
+		obj := reflect.New(ptrElemType)
 		iter.ReadVal(obj)
 		*pObj = obj
 		return
@@ -54,18 +51,20 @@ func (decoder *efaceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 }
 
 type ifaceDecoder struct {
-	valType *reflect2.UnsafeIFaceType
+	valType reflect.Type
 }
 
 func (decoder *ifaceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 	if iter.ReadNil() {
-		decoder.valType.UnsafeSet(ptr, decoder.valType.UnsafeNew())
+		value := reflect.NewAt(decoder.valType, ptr)
+		value.Set(reflect.New(decoder.valType))
 		return
 	}
-	obj := decoder.valType.UnsafeIndirect(ptr)
-	if reflect.ValueOf(obj).IsNil() {
+	value := reflect.NewAt(decoder.valType, ptr)
+	if value.IsNil() {
 		iter.ReportError("decode non empty interface", "can not unmarshal into nil")
 		return
 	}
+	obj := reflect.Indirect(value).Interface()
 	iter.ReadVal(obj)
 }
