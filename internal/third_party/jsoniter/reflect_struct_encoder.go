@@ -70,8 +70,8 @@ func createCheckIsEmpty(ctx *ctx, typ reflect.Type) checkIsEmpty {
 }
 
 func resolveConflictBinding(cfg *frozenConfig, old, new *Binding) (ignoreOld, ignoreNew bool) {
-	newTagged := new.Field.Tag().Get(cfg.getTagKey()) != ""
-	oldTagged := old.Field.Tag().Get(cfg.getTagKey()) != ""
+	newTagged := new.Field.Tag.Get(cfg.getTagKey()) != ""
+	oldTagged := old.Field.Tag.Get(cfg.getTagKey()) != ""
 	if newTagged {
 		if oldTagged {
 			if len(old.levels) > len(new.levels) {
@@ -105,15 +105,15 @@ type structFieldEncoder struct {
 }
 
 func (encoder *structFieldEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
-	fieldPtr := encoder.field.UnsafeGet(ptr)
+	fieldPtr := unsafe.Add(ptr, encoder.field.Offset)
 	encoder.fieldEncoder.Encode(fieldPtr, stream)
 	if stream.Error != nil && stream.Error != io.EOF {
-		stream.Error = fmt.Errorf("%s: %s", encoder.field.Name(), stream.Error.Error())
+		stream.Error = fmt.Errorf("%s: %s", encoder.field.Name, stream.Error.Error())
 	}
 }
 
 func (encoder *structFieldEncoder) IsEmpty(ptr unsafe.Pointer) bool {
-	fieldPtr := encoder.field.UnsafeGet(ptr)
+	fieldPtr := unsafe.Add(ptr, encoder.field.Offset)
 	return encoder.fieldEncoder.IsEmpty(fieldPtr)
 }
 
@@ -122,7 +122,7 @@ func (encoder *structFieldEncoder) IsEmbeddedPtrNil(ptr unsafe.Pointer) bool {
 	if !converted {
 		return false
 	}
-	fieldPtr := encoder.field.UnsafeGet(ptr)
+	fieldPtr := unsafe.Add(ptr, encoder.field.Offset)
 	return isEmbeddedPtrNil.IsEmbeddedPtrNil(fieldPtr)
 }
 
