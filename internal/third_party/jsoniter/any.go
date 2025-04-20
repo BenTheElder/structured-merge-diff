@@ -291,13 +291,13 @@ func (codec *anyCodec) Decode(ptr unsafe.Pointer, iter *Iterator) {
 }
 
 func (codec *anyCodec) Encode(ptr unsafe.Pointer, stream *Stream) {
-	obj := codec.valType.UnsafeIndirect(ptr)
+	obj := reflect.Indirect(reflect.NewAt(codec.valType, ptr)).Interface()
 	any := obj.(Any)
 	any.WriteTo(stream)
 }
 
 func (codec *anyCodec) IsEmpty(ptr unsafe.Pointer) bool {
-	obj := codec.valType.UnsafeIndirect(ptr)
+	obj := reflect.Indirect(reflect.NewAt(codec.valType, ptr)).Interface()
 	any := obj.(Any)
 	return any.Size() == 0
 }
