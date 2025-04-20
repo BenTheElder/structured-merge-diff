@@ -3,20 +3,16 @@ package jsoniter
 import (
 	"reflect"
 	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 func decoderOfOptional(ctx *ctx, typ reflect.Type) ValDecoder {
-	ptrType := typ.(*reflect2.UnsafePtrType)
-	elemType := ptrType.Elem()
+	elemType := typ.Elem()
 	decoder := decoderOfType(ctx, elemType)
 	return &OptionalDecoder{elemType, decoder}
 }
 
 func encoderOfOptional(ctx *ctx, typ reflect.Type) ValEncoder {
-	ptrType := typ.(*reflect2.UnsafePtrType)
-	elemType := ptrType.Elem()
+	elemType := typ.Elem()
 	elemEncoder := encoderOfType(ctx, elemType)
 	encoder := &OptionalEncoder{elemEncoder}
 	return encoder
@@ -33,7 +29,7 @@ func (decoder *OptionalDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 	} else {
 		if *((*unsafe.Pointer)(ptr)) == nil {
 			//pointer to null, we have to allocate memory to hold the value
-			newPtr := decoder.ValueType.UnsafeNew()
+			newPtr := reflect.New(decoder.ValueType).UnsafePointer()
 			decoder.ValueDecoder.Decode(newPtr, iter)
 			*((*unsafe.Pointer)(ptr)) = newPtr
 		} else {
@@ -52,7 +48,7 @@ type dereferenceDecoder struct {
 func (decoder *dereferenceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 	if *((*unsafe.Pointer)(ptr)) == nil {
 		//pointer to null, we have to allocate memory to hold the value
-		newPtr := decoder.valueType.UnsafeNew()
+		newPtr := reflect.New(decoder.valueType).UnsafePointer()
 		decoder.valueDecoder.Decode(newPtr, iter)
 		*((*unsafe.Pointer)(ptr)) = newPtr
 	} else {
