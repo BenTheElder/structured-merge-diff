@@ -1,6 +1,7 @@
 package jsoniter
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -57,7 +58,9 @@ type ifaceDecoder struct {
 func (decoder *ifaceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 	if iter.ReadNil() {
 		value := reflect.NewAt(decoder.valType, ptr)
-		value.Set(reflect.New(decoder.valType))
+		fmt.Printf("valType: %v, %#v, val: %v %#v\n", decoder.valType, decoder.valType, value, value)
+		value.SetPointer(reflect.New(decoder.valType).UnsafePointer())
+		//value.Set(reflect.New(decoder.valType))
 		return
 	}
 	value := reflect.NewAt(decoder.valType, ptr)

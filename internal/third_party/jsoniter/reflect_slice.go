@@ -24,20 +24,24 @@ type sliceEncoder struct {
 
 func (encoder *sliceEncoder) Encode(ptr unsafe.Pointer, stream *Stream) {
 	value := reflect.NewAt(encoder.sliceType, ptr)
+	//fmt.Printf("%#v\n%v\n%#v\n%v\n", encoder.sliceType, encoder.sliceType, value, value)
 	if value.IsNil() {
 		stream.WriteNil()
 		return
 	}
+	// deref pointer
+	value = value.Elem()
+	//fmt.Printf("%#v\n%v\n%#v\n%v\n", encoder.sliceType, encoder.sliceType, value, value)
 	length := value.Len()
 	if length == 0 {
 		stream.WriteEmptyArray()
 		return
 	}
 	stream.WriteArrayStart()
-	encoder.elemEncoder.Encode(value.Index(0).UnsafePointer(), stream)
+	encoder.elemEncoder.Encode(unsafe.Pointer(value.Index(0).UnsafeAddr()), stream)
 	for i := 1; i < length; i++ {
 		stream.WriteMore()
-		elemPtr := value.Index(i).UnsafePointer()
+		elemPtr := unsafe.Pointer(value.Index(i).UnsafeAddr())
 		encoder.elemEncoder.Encode(elemPtr, stream)
 	}
 	stream.WriteArrayEnd()
@@ -66,7 +70,7 @@ func (decoder *sliceDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
 func (decoder *sliceDecoder) doDecode(ptr unsafe.Pointer, iter *Iterator) {
 	c := iter.nextToken()
 	sliceType := decoder.sliceType
-	value := reflect.NewAt(sliceType, ptr)
+	value := reflect.Indirect(reflect.NewAt(sliceType, ptr))
 	if c == 'n' {
 		iter.skipThreeBytes('u', 'l', 'l')
 		value.SetZero()
@@ -82,15 +86,17 @@ func (decoder *sliceDecoder) doDecode(ptr unsafe.Pointer, iter *Iterator) {
 		return
 	}
 	iter.unreadByte()
-	value.Grow(1)
-	elemPtr := value.UnsafePointer()
-	decoder.elemDecoder.Decode(elemPtr, iter)
 	length := 1
+	value.Grow(1)
+	value.SetLen(length)
+	elemPtr := unsafe.Pointer(value.Index(0).UnsafeAddr())
+	decoder.elemDecoder.Decode(elemPtr, iter)
 	for c = iter.nextToken(); c == ','; c = iter.nextToken() {
 		idx := length
 		length += 1
-		value.Grow(length)
-		elemPtr = value.Index(idx).UnsafePointer()
+		value.Grow(1)
+		value.SetLen(length)
+		elemPtr = unsafe.Pointer(value.Index(idx).UnsafeAddr())
 		decoder.elemDecoder.Decode(elemPtr, iter)
 	}
 	if c != ']' {

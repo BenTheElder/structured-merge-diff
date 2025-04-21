@@ -44,8 +44,8 @@ func Test_unmarshal(t *testing.T) {
 				obj2 = testCase.obj()
 			} else {
 				valType := reflect.TypeOf(testCase.ptr).Elem()
-				obj1 = valType.New()
-				obj2 = valType.New()
+				obj1 = reflect.New(valType)
+				obj2 = reflect.New(valType)
 			}
 			err1 := json.Unmarshal([]byte(testCase.input), obj1)
 			should.NoError(err1, "json")

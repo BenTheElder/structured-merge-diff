@@ -109,8 +109,7 @@ func (cfg *frozenConfig) DecoderOf(typ reflect.Type) ValDecoder {
 		decoders:     map[reflect.Type]ValDecoder{},
 		encoders:     map[reflect.Type]ValEncoder{},
 	}
-	ptrType := typ.(*reflect2.UnsafePtrType)
-	decoder = decoderOfType(ctx, ptrType.Elem())
+	decoder = decoderOfType(ctx, typ.Elem())
 	cfg.addDecoderToCache(typ, decoder)
 	return decoder
 }
@@ -166,11 +165,12 @@ func _createDecoderOfType(ctx *ctx, typ reflect.Type) ValDecoder {
 	}
 	switch typ.Kind() {
 	case reflect.Interface:
-		ifaceType, isIFace := typ.(*reflect2.UnsafeIFaceType)
-		if isIFace {
-			return &ifaceDecoder{valType: ifaceType}
+		// optimize for empty interface, IE no methods
+		// TODO: verify correctness ...
+		if typ == anyType || typ.Implements(anyType) {
+			return &efaceDecoder{}
 		}
-		return &efaceDecoder{}
+		return &ifaceDecoder{valType: typ}
 	case reflect.Struct:
 		return decoderOfStruct(ctx, typ)
 	case reflect.Array:
@@ -198,11 +198,40 @@ func (cfg *frozenConfig) EncoderOf(typ reflect.Type) ValEncoder {
 		encoders:     map[reflect.Type]ValEncoder{},
 	}
 	encoder = encoderOfType(ctx, typ)
-	if typ.LikePtr() {
+	if likePtrType(typ) {
 		encoder = &onePtrEncoder{encoder}
 	}
 	cfg.addEncoderToCache(typ, encoder)
 	return encoder
+}
+
+// TODO: based on reflect2
+func likePtrKind(kind reflect.Kind) bool {
+	switch kind {
+	case reflect.Ptr, reflect.Map, reflect.Chan, reflect.Func:
+		return true
+	}
+	return false
+}
+
+// TODO: based on reflect2
+func likePtrType(typ reflect.Type) bool {
+	if likePtrKind(typ.Kind()) {
+		return true
+	}
+	if typ.Kind() == reflect.Struct {
+		if typ.NumField() != 1 {
+			return false
+		}
+		return likePtrType(typ.Field(0).Type)
+	}
+	if typ.Kind() == reflect.Array {
+		if typ.Len() != 1 {
+			return false
+		}
+		return likePtrType(typ.Elem())
+	}
+	return false
 }
 
 type onePtrEncoder struct {
